@@ -1,45 +1,88 @@
-# 🎧 Model Card: Music Recommender Simulation
+# Model Card: VibeFinder 2.0
 
 ## Model Name
-**VibeFinder 1.0**
+**VibeFinder 2.0** — Extended Music Recommender System
+
+## Base Project
+VibeFinder 1.0, built during Module 3 of AI110 at Northeastern University. Original system implemented content-based scoring across 12 song features with four scoring modes and a diversity penalty.
+
+---
 
 ## Goal / Task
-VibeFinder predicts which songs from a music catalog will best match a user's musical preferences, suggesting personalized song recommendations based on genre, mood, and audio features like energy and danceability.
+VibeFinder 2.0 predicts which songs from a music catalog best match a user's musical preferences, then explains *why* each song was chosen, flags when a recommendation conflicts with stated preferences, and logs a full audit trail of every decision.
 
-## Data Used
-The system uses a catalog of 18 songs with features including genre, mood, energy level, tempo, valence (positivity), danceability, and acousticness. Genres include pop, lofi, rock, jazz, electronic, and more. The dataset has some limitations - lofi is overrepresented with 3 songs, while most genres have only 1 song, and extreme values in features like very low energy or high acousticness are missing.
+---
 
 ## Algorithm Summary
-VibeFinder scores songs using a point system where genre matches give 1.25 points, mood matches give 2 points, and audio features like energy (6 points), valence, danceability, and acousticness (3 points each) are scored based on how close they are to user preferences. Tempo gets 2.5 points based on BPM difference. Higher scores mean better matches, with a maximum of 20.75 points.
+Songs are scored using a point-weighting algorithm across 12 features (genre, mood, energy, valence, danceability, acousticness, tempo, song popularity, artist popularity, release decade, mood tags, song length), normalized to a 0–100 scale. A greedy diversity filter applies compounding artist (35%) and genre (20%) penalties. A self-critique agent then checks each result for genre conflicts. Confidence scores (0.0–1.0) are computed per recommendation based on normalized score plus categorical match bonuses.
 
-## Observed Behavior / Biases
-The system shows a strong bias toward numerical audio features over categorical preferences like genre. Users with conflicting preferences (wanting lofi but high energy) often get recommendations that match the energy level but ignore the genre, creating filter bubbles. Songs with extreme feature values outside the dataset's range get poor scores for those users.
+---
 
-## Evaluation Process
-I tested VibeFinder with 7 diverse user profiles representing different musical tastes, from chill lofi fans to high-energy party seekers. I ran a weight shift experiment doubling energy importance and halving genre weight, which made recommendations worse for users with conflicting preferences. I compared recommendation differences between profile pairs to understand how preferences affect results.
+## Limitations and Biases
 
-## Intended Use and Non-Intended Use
-VibeFinder is intended for classroom exploration of how recommender systems work, helping students understand the trade-offs between different scoring approaches. It should not be used for real music recommendations to actual users, as it's a simplified simulation with limited data and known biases that could lead to poor suggestions.
+**Catalog size**: 18 songs is far too small to evaluate diversity, filter bubbles, or edge cases meaningfully. Any finding from this catalog should be treated as directional, not conclusive.
+
+**Feature dominance bias**: The 12 numerical features mathematically outweigh the single categorical genre label. A user who requests lofi but has high-energy targets will consistently receive pop music — not because the algorithm is broken, but because that is what the weights encode. This is a design choice that needs to be made explicit to users, not hidden behind a score.
+
+**Popularity bias**: Songs with high `song_popularity` scores are surfaced more for users who prefer popular content, creating a "rich get richer" pattern where already-popular songs become more visible regardless of actual fit.
+
+**Era bias**: Decade preferences create temporal filter bubbles. A user who prefers 1980s music may never see anything recorded after 1999, even if it would match all their other preferences perfectly.
+
+**No semantic understanding**: The system cannot capture qualities like "nostalgic," "intimate," or "cinematic" — only quantifiable attributes. Mood tags are matched by string equality, not meaning.
+
+**Genre over-simplification**: Adjacent genres (synthwave vs. lofi, indie folk vs. acoustic pop) are treated as completely unrelated if neither appears in the user's preference list.
+
+---
+
+## Could This AI Be Misused?
+
+The system itself is low-risk — it recommends songs, not decisions that affect people's lives. However, the design patterns it demonstrates could be misused at scale:
+
+**Filter bubble amplification**: A production recommender using only content-based scoring with no diversity intervention would progressively narrow a user's musical exposure. VibeFinder addresses this with the diversity penalty, but a bad actor could disable it to maximize engagement with familiar content at the cost of discovery.
+
+**Popularity manipulation**: Artificially inflating `song_popularity` scores for specific tracks could cause them to surface more often for users who prefer popular content — a form of algorithmic payola.
+
+**Prevention measures built into VibeFinder 2.0**: The diversity penalty is on by default and logged. The self-critique agent flags conflicts transparently. The reliability scorer detects filter bubble risk and includes it in the output. None of these can be silently disabled without leaving a trace in the log file.
+
+---
+
+## What Surprised Me During Reliability Testing
+
+The most surprising finding was that the consistency checker confirmed the scoring engine is **fully deterministic** — identical inputs always produce identical outputs across all runs. This sounds obvious, but it is actually meaningful: it rules out any randomness or hidden state as a source of unexpected behavior. When the system gives a surprising recommendation, the cause is always traceable to the weights, not to non-determinism.
+
+The second surprise was how useful the **confidence score gap** turned out to be as a diagnostic. Coherent profiles (Lofi Devotee) averaged 0.87 confidence. Conflicting profiles (Confused Party Animal) dropped to 0.64 — a 23-point gap that made the genre/feature tension immediately visible without having to read through the full scoring breakdown. A number that low is a reliable signal that something in the preference profile deserves a second look.
+
+---
+
+## AI Collaboration — How Claude Was Used
+
+This project was built with substantial assistance from Claude (Anthropic). Claude helped design the module architecture, wrote the initial versions of `guardrails.py`, `reliability.py`, `logger.py`, and `test_reliability.py`, generated the system architecture diagram, and drafted sections of this README and model card.
+
+**One instance where AI assistance was genuinely helpful:**
+When designing the self-critique agent, Claude suggested computing a confidence score that combined the normalized recommendation score *with* categorical match bonuses for genre and mood. This was better than the original plan of just flagging binary pass/fail conflicts, because it produced a continuous signal (0.0–1.0) that made the severity of a conflict immediately readable rather than just its presence.
+
+**One instance where AI assistance was flawed:**
+Claude initially suggested integrating the RAG retrieval step *after* the scoring and diversity filter had already run — meaning the AI explanation would be generated from final ranked results but would have no ability to influence the ranking itself. This made RAG decorative rather than functional, which directly contradicted the project requirement that the feature "meaningfully change how the system behaves." The fix was to restructure the pipeline so retrieval happens in parallel with scoring, giving the AI layer access to both ranked candidates and their retrieved context simultaneously before producing explanations.
+
+---
+
+## Evaluation
+
+23 automated tests pass across two test files covering input validation, confidence scoring, conflict detection, filter bubble detection, and consistency checking. 7 stress-test profiles were run across all 4 scoring modes. The weight-shift experiment (doubling energy weight, halving genre weight) confirmed that increasing feature dominance makes recommendations *worse* for users with conflicting preferences — a finding that directly informed the decision to keep genre weight at its original level and add the self-critique layer instead.
+
+---
+
+## Intended Use
+Classroom demonstration of applied AI system design concepts including RAG, agentic self-critique, reliability testing, and responsible AI documentation. Not intended for production music recommendation to real users.
+
+## Non-Intended Use
+Should not be used to make real music recommendations without significant catalog expansion, collaborative filtering signals, and user feedback integration.
+
+---
 
 ## Ideas for Improvement
-1. Increase genre weight to better balance categorical and numerical matching
-2. Add more songs to the catalog, especially for underrepresented genres and extreme feature values
-3. Implement hybrid scoring that considers both individual preferences and overall user patterns
-
-## Challenge 3 Reflection: Diversity and Fairness Logic
-
-Before adding the diversity penalty, the recommender had a clear filter-bubble problem: a user who liked lofi would get 3 of their top 5 results from the same genre, and the same artist (LoRoom) could appear twice back-to-back. The results were accurate in the sense that those songs genuinely scored highest, but they made the playlist feel repetitive and narrow.
-
-To fix this, I implemented a greedy diversity-aware selection loop with two compounding penalties:
-
-- **Artist penalty (35%)**: each time an artist already appears in the results, the next song by that artist has its score multiplied by 0.65. A second repeat is multiplied again — penalties compound, so repeat offenders are pushed down progressively harder.
-- **Genre penalty (20%)**: same logic for genre — a second lofi song in the results takes a 20% score hit, a third would take another 20% on top of that.
-
-The selection loop re-evaluates every remaining candidate after each pick, so the penalties reflect the actual current state of the result list rather than a fixed pre-computed deduction.
-
-The smoke test showed the effect clearly: without diversity, LoRoom appeared twice and lofi dominated 3 of 5 slots. With diversity, each slot went to a different artist, and two different genres replaced the repeated ones — while the top-ranked song (the genuinely best match) was unchanged.
-
-What this taught me about fairness in recommender systems: the "most accurate" result and the "best user experience" result are not always the same thing. A recommender that always picks the highest raw score can confidently lock a user into a bubble — feeding them the same sound over and over because it keeps scoring well. Diversity logic is a deliberate override of pure accuracy in favor of variety, and that trade-off is a design choice, not a math mistake. Real platforms like Spotify make this same trade-off intentionally, which is why Discover Weekly doesn't just give you 30 songs from your single most-played artist.
-
-## Personal Reflection
-My biggest learning moment was realizing how recommender systems can create hidden biases through seemingly neutral scoring rules - the weight shift experiment showed that doubling energy importance made the system confidently recommend wrong-genre songs, revealing that "objective" algorithms aren't really neutral. AI tools like GitHub Copilot helped me quickly implement complex scoring functions and generate test profiles, but I had to double-check the math calculations and verify that the scoring logic actually worked as intended, especially when the results surprised me. What surprised me most was how a simple point-weighting algorithm could still produce recommendations that "felt" right for many users, even though it was just basic distance calculations - it showed me why real music apps can seem smart with relatively straightforward math. If I extended this project, I'd try implementing collaborative filtering by adding user-song interaction data, and explore how to make the system learn from user feedback to automatically adjust weights over time.
+1. Expand catalog to 500+ songs across all genres to make diversity metrics meaningful
+2. Add collaborative filtering — surface what users with similar taste profiles enjoy
+3. Implement user feedback loop — let the system adjust weights based on thumbs up/down
+4. Replace string-equality mood matching with semantic similarity using embeddings
+5. Increase genre weight or implement explicit conflict resolution logic so categorical preferences are not silently overridden by numerical features
