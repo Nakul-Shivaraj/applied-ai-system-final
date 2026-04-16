@@ -64,13 +64,7 @@ The system is organized into four layers:
    pip install -r requirements.txt
    ```
 
-4. Add your Anthropic API key to a `.env` file in the project root:
-
-   ```
-   ANTHROPIC_API_KEY=your_key_here
-   ```
-
-5. Run the system:
+4. Run the system:
 
    ```bash
    python -m src.main
@@ -79,7 +73,7 @@ The system is organized into four layers:
 ### Running Tests
 
 ```bash
-pytest
+python -m pytest
 ```
 
 ---
@@ -141,12 +135,12 @@ Target acousticness: 0.90 | Preferred decades: 1970s, 1980s
 
 **System output:**
 ```
-# | Title               | Artist        | Genre | Score | AI Explanation
-1 | Coffee Shop Stories | Blue Note Trio| jazz  | 100.0 | Perfect match across genre, mood,
-  |                     |               |       |       | and acousticness. Only jazz song
-  |                     |               |       |       | in catalog. ⚠ Filter bubble risk:
-  |                     |               |       |       | catalog has 1 jazz track. Results
-  |                     |               |       |       | lack diversity by catalog constraint.
+# | Title               | Artist         | Genre | Score | AI Explanation
+1 | Coffee Shop Stories | Blue Note Trio | jazz  | 100.0 | Perfect match across genre, mood,
+  |                     |                |       |       | and acousticness. Only jazz song
+  |                     |                |       |       | in catalog. ⚠ Filter bubble risk:
+  |                     |                |       |       | catalog has 1 jazz track. Results
+  |                     |                |       |       | lack diversity by catalog constraint.
 ```
 
 The reliability scorer flags a filter bubble risk caused by catalog size, not by algorithm error — an important distinction the original system could not make.
@@ -201,24 +195,97 @@ The reliability scorer was the most underrated addition. It did not improve reco
 
 ---
 
+## Optional Feature 1: RAG Enhancement
+
+**What was built:** A retrieval-augmented generation module (`src/rag.py`) backed by a custom knowledge base (`data/knowledge_base.json`) containing documented facts about 5 artists and 7 genres.
+
+**How it works:** Before generating an explanation, the RAG module looks up the song's artist and genre in the knowledge base and retrieves documented production style, typical energy range, and common mood associations. The explanation is then grounded in those retrieved facts rather than generated generically.
+
+**Measurable improvement — baseline vs RAG:**
+
+*Baseline (no retrieval):*
+```
+'Midnight Coding' by LoRoom (lofi) — Score: 93.3/100
+  Recommended based on feature matching.
+  No additional artist or genre context available.
+```
+
+*RAG-grounded (with knowledge base retrieval):*
+```
+'Midnight Coding' by LoRoom — Score: 93.3/100
+  Artist context: LoRoom is a bedroom lofi producer known for slow-tempo
+  instrumental tracks built around vinyl crackle, muted piano chords,
+  and soft drum loops.
+  Known for: vinyl crackle, muted piano, slow tempo, instrumental
+  Genre context: Lofi is characterized by intentionally imperfect audio
+  production — vinyl crackle, tape hiss, and slightly off-tempo drums.
+  Typical moods: chill, focused, nostalgic, peaceful
+  Energy alignment: Song energy (0.38) is a strong match for your target (0.40).
+```
+
+**To run the comparison demo:**
+```bash
+python rag_comparison.py
+```
+
+---
+
+## Optional Feature 2: Agentic Workflow
+
+**What was built:** A 6-step reasoning chain (`src/agent.py`) that makes every intermediate decision visible and auditable as it runs. Each step passes its output as input to the next, and any step can halt the chain early if something fails.
+
+**The 6 steps:**
+
+```
+[AGENT] Step 1/6 — Validating input...         ✓ passed
+[AGENT] Step 2/6 — Retrieving context...       ✓ done  (3/3 songs have KB entries)
+[AGENT] Step 3/6 — Scoring songs...            ✓ done  (top-3 selected from 18 songs)
+[AGENT] Step 4/6 — Running self-critique...    ⚠ 3 conflict(s) detected
+[AGENT] Step 5/6 — Generating explanations...  ✓ done  (avg confidence: 0.83)
+[AGENT] Step 6/6 — Logging run...              ✓ saved to logs/run_log.txt
+```
+
+**Key findings across 3 profiles:**
+
+| Profile | Conflicts | Avg Confidence | Notes |
+|---|---|---|---|
+| Lofi Devotee | 0 | 0.91 | Clean run, all steps passed |
+| Confused Party Animal | 3 | 0.83 | All top results flagged at Step 4 |
+| Jazz Snob | 2 | 0.74 | Filter bubble risk also detected |
+
+**What makes it agentic:** Invalid input at Step 1 stops the chain before scoring runs — no wasted computation. Step 4 critique results are passed directly into Step 5 explanations, so every conflict warning is embedded in the final output rather than computed separately.
+
+**To run:**
+```bash
+python run_agent.py
+```
+
+---
+
 ## Project Structure
 
 ```
 applied-ai-system-final/
 ├── assets/
-│   └── architecture.jpeg        # System diagram
+│   └── architecture.jpeg       # System diagram
 ├── data/
-│   └── songs.csv               # Song catalog (18 tracks)
+│   ├── songs.csv               # Song catalog (18 tracks)
+│   └── knowledge_base.json     # RAG knowledge base (artists + genres)
 ├── src/
 │   ├── main.py                 # Entry point and stress-test runner
 │   ├── recommender.py          # Core scoring and diversity engine
-│   ├── rag.py                  # RAG retrieval module
-│   ├── critique.py             # Self-critique agent
+│   ├── rag.py                  # RAG retrieval and explanation module
+│   ├── agent.py                # 6-step agentic reasoning chain
 │   ├── reliability.py          # Reliability and consistency scorer
 │   ├── guardrails.py           # Input validation
 │   └── logger.py               # Run logging
+├── tests/
+│   ├── test_recommender.py     # Core recommender tests
+│   └── test_reliability.py     # Reliability and guardrails tests
 ├── logs/
 │   └── run_log.txt             # Auto-generated per run
+├── rag_comparison.py           # Baseline vs RAG comparison script
+├── run_agent.py                # Agentic workflow runner
 ├── model_card.md
 ├── reflection.md
 ├── EXPERIMENT_RESULTS.md

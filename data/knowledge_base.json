@@ -1,0 +1,90 @@
+{
+  "artists": {
+    "loroom": {
+      "name": "LoRoom",
+      "description": "LoRoom is a bedroom lofi producer known for slow-tempo instrumental tracks built around vinyl crackle, muted piano chords, and soft drum loops. Their music is widely used for late-night studying and focused work sessions.",
+      "style_tags": ["vinyl crackle", "muted piano", "slow tempo", "instrumental"],
+      "typical_energy": "low (0.30-0.45)",
+      "typical_acousticness": "high (0.75-0.90)"
+    },
+    "max pulse": {
+      "name": "Max Pulse",
+      "description": "Max Pulse produces high-energy pop and electronic tracks designed for gym playlists and workout sessions. Known for aggressive bass drops, fast tempos, and heavily synthesized production.",
+      "style_tags": ["high energy", "bass drops", "synthesized", "fast tempo"],
+      "typical_energy": "high (0.85-0.95)",
+      "typical_acousticness": "low (0.02-0.10)"
+    },
+    "neurobeat": {
+      "name": "NeuroBeat",
+      "description": "NeuroBeat specializes in ambient and focus music, using binaural-inspired layering and minimal percussion to create sustained concentration states. Popular in productivity communities.",
+      "style_tags": ["ambient", "binaural", "minimal percussion", "focus"],
+      "typical_energy": "low (0.25-0.40)",
+      "typical_acousticness": "very high (0.85-0.95)"
+    },
+    "blue note trio": {
+      "name": "Blue Note Trio",
+      "description": "Blue Note Trio is a modern jazz ensemble drawing from 1970s-1980s acoustic jazz traditions. Known for sophisticated chord voicings, brushed drum work, and upright bass.",
+      "style_tags": ["acoustic jazz", "brushed drums", "upright bass", "sophisticated"],
+      "typical_energy": "moderate (0.30-0.45)",
+      "typical_acousticness": "very high (0.85-0.95)"
+    },
+    "sunrise collective": {
+      "name": "Sunrise Collective",
+      "description": "Sunrise Collective blends electronic pop with organic instrumentation, creating upbeat tracks with moderate energy levels suited for morning routines and commutes.",
+      "style_tags": ["electronic pop", "organic instruments", "upbeat", "morning vibes"],
+      "typical_energy": "moderate-high (0.60-0.75)",
+      "typical_acousticness": "moderate (0.30-0.50)"
+    }
+  },
+  "genres": {
+    "lofi": {
+      "name": "Lofi Hip-Hop",
+      "description": "Lofi is characterized by intentionally imperfect audio production — vinyl crackle, tape hiss, and slightly off-tempo drums. Emerged from bedroom producers in the 2010s. Tempos typically range from 60-90 BPM. High acousticness, low energy, and chill moods define the genre.",
+      "typical_bpm_range": "60-90",
+      "typical_energy": "low (0.25-0.50)",
+      "common_moods": ["chill", "focused", "nostalgic", "peaceful"]
+    },
+    "ambient": {
+      "name": "Ambient",
+      "description": "Ambient music prioritizes atmosphere over rhythm or melody. Often lacks percussion entirely. Used for meditation, sleep, and deep focus. Very low energy and very high acousticness are defining traits.",
+      "typical_bpm_range": "50-80",
+      "typical_energy": "very low (0.10-0.35)",
+      "common_moods": ["calm", "focused", "peaceful", "meditative"]
+    },
+    "pop": {
+      "name": "Pop",
+      "description": "Pop music is designed for broad commercial appeal — verse-chorus structures, high production value, and accessible melodies. Typically moderate to high energy with strong danceability.",
+      "typical_bpm_range": "100-140",
+      "typical_energy": "moderate-high (0.55-0.85)",
+      "common_moods": ["happy", "energetic", "uplifting", "intense"]
+    },
+    "jazz": {
+      "name": "Jazz",
+      "description": "Jazz is defined by improvisation, complex chord progressions, and acoustic instrumentation. Acoustic jazz has very high acousticness and moderate energy. Subgenres range from bebop (fast, complex) to cool jazz (slow, relaxed).",
+      "typical_bpm_range": "60-200 depending on subgenre",
+      "typical_energy": "moderate (0.30-0.60)",
+      "common_moods": ["relaxed", "sophisticated", "smooth", "focused"]
+    },
+    "electronic": {
+      "name": "Electronic",
+      "description": "Electronic music spans a wide range but is unified by synthesized production. High energy, low acousticness, and strong danceability are common. Subgenres include house, techno, synthwave, and ambient electronic.",
+      "typical_bpm_range": "120-160",
+      "typical_energy": "high (0.65-0.95)",
+      "common_moods": ["energetic", "euphoric", "intense", "focused"]
+    },
+    "rock": {
+      "name": "Rock",
+      "description": "Rock music centers on guitar-driven arrangements with live drums and bass. Energy levels vary widely by subgenre — indie rock sits around 0.55-0.70, while hard rock reaches 0.80-0.95. Moderate acousticness.",
+      "typical_bpm_range": "100-160",
+      "typical_energy": "moderate-high (0.55-0.90)",
+      "common_moods": ["intense", "energetic", "confident", "emotional"]
+    },
+    "hip-hop": {
+      "name": "Hip-Hop",
+      "description": "Hip-hop is built on sampled or produced beats with rhythmic vocal delivery. Strong danceability, moderate-high energy, and low acousticness are typical. BPMs typically range from 80-100 for traditional hip-hop.",
+      "typical_bpm_range": "80-100",
+      "typical_energy": "moderate-high (0.55-0.80)",
+      "common_moods": ["confident", "energetic", "focused", "intense"]
+    }
+  }
+}
