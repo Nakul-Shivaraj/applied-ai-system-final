@@ -298,3 +298,15 @@ applied-ai-system-final/
 ## Model Card
 
 See [model_card.md](model_card.md) for full documentation of intended use, data sources, known biases, evaluation methodology, and future work.
+
+---
+
+## Portfolio
+
+**GitHub:** [github.com/Nakul-Shivaraj/applied-ai-system-final](https://github.com/Nakul-Shivaraj/applied-ai-system-final)
+
+**Demo walkthrough:** [Watch on Loom](https://www.loom.com/share/7971159d5f754fa1a17eeca1bf9a6c0b)
+
+VibeFinder 2.0 reflects how I approach AI engineering — starting from a working prototype, identifying its real failure modes through stress testing, and extending it with components that make those failures visible rather than hiding them. Building a system that explains its own conflicts taught me that responsible AI design is less about accuracy and more about legibility. I want to build AI that people can audit, question, and trust.
+
+---
